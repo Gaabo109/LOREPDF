@@ -70,54 +70,86 @@
   <img id="preview" alt="Vista previa de la foto">
   <button id="btnGenerar" disabled>Crear PDF</button>
 
-  <script>
-    let imagenBase64 = null;
+<script>
+  let imagenBase64 = null;
+  let imagenVerticalBase64 = null; // imagen ajustada vertical
 
-    const imageInput = document.getElementById("imageInput");
-    const preview = document.getElementById("preview");
-    const btnGenerar = document.getElementById("btnGenerar");
+  const imageInput = document.getElementById("imageInput");
+  const preview = document.getElementById("preview");
+  const btnGenerar = document.getElementById("btnGenerar");
 
-    imageInput.addEventListener("change", e => {
-      const file = e.target.files[0];
-      if (!file) return;
+  imageInput.addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = event => {
-        imagenBase64 = event.target.result;
-        preview.src = imagenBase64;
-        preview.style.display = "block";
-        btnGenerar.disabled = false;
-      };
-      reader.readAsDataURL(file);
-    });
+    const reader = new FileReader();
+    reader.onload = async event => {
+      imagenBase64 = event.target.result;
+      // Ajustar la imagen para que quede vertical
+      imagenVerticalBase64 = await ajustarImagenVertical(imagenBase64);
+      preview.src = imagenVerticalBase64;
+      preview.style.display = "block";
+      btnGenerar.disabled = false;
+    };
+    reader.readAsDataURL(file);
+  });
 
-    btnGenerar.addEventListener("click", async () => {
-      if (!imagenBase64) return alert("Selecciona una imagen primero.");
+  btnGenerar.addEventListener("click", () => {
+    if (!imagenVerticalBase64) return alert("Selecciona una imagen primero.");
 
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ unit: "mm", format: "A4" });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: "mm", format: "A4" });
 
-      const fotoAncho = 25; // mm
-      const fotoAlto = 30;  // mm
-      const margenX = 15;
-      const margenY = 15;
-      const espacioX = 5;
-      const espacioY = 5;
+    const fotoAncho = 25; // mm
+    const fotoAlto = 30;  // mm
+    const margenX = 15;
+    const margenY = 15;
+    const espacioX = 5;
+    const espacioY = 5;
 
-      let x = margenX;
-      let y = margenY;
+    let x = margenX;
+    let y = margenY;
 
-      for (let i = 0; i < 10; i++) {
-        pdf.addImage(imagenBase64, 'JPEG', x, y, fotoAncho, fotoAlto);
-        x += fotoAncho + espacioX;
-        if ((i + 1) % 5 === 0) {
-          x = margenX;
-          y += fotoAlto + espacioY;
-        }
+    for (let i = 0; i < 10; i++) {
+      pdf.addImage(imagenVerticalBase64, 'JPEG', x, y, fotoAncho, fotoAlto);
+      x += fotoAncho + espacioX;
+      if ((i + 1) % 5 === 0) {
+        x = margenX;
+        y += fotoAlto + espacioY;
       }
+    }
 
-      pdf.save("fotos_infantil.pdf");
+    pdf.save("fotos_infantil.pdf");
+  });
+
+  // Función para rotar la imagen si está en horizontal
+  function ajustarImagenVertical(base64Img) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let ctx = canvas.getContext('2d');
+
+        if (img.width > img.height) {
+          // Imagen horizontal -> rotar 90 grados para vertical
+          canvas.width = img.height;
+          canvas.height = img.width;
+          ctx.translate(canvas.width / 2, canvas.height / 2);
+          ctx.rotate(90 * Math.PI / 180);
+          ctx.drawImage(img, -img.width / 2, -img.height / 2);
+        } else {
+          // Ya es vertical, no rotar
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+        }
+
+        resolve(canvas.toDataURL('image/jpeg'));
+      };
+      img.src = base64Img;
     });
-  </script>
+  }
+</script>
+
 </body>
 </html>
