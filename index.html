@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PDF Fotos Infantil</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
   <style>
@@ -32,7 +32,7 @@
       max-width: 100%;
       max-height: 200px;
       border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       display: none;
       margin-bottom: 1rem;
     }
@@ -64,92 +64,96 @@
   </style>
 </head>
 <body>
-  <h2>Generar PDF con 10 fotos tamaño infantil</h2>
+  <h2>Generar PDF con 10 fotos tamaño infantil LoreExpress</h2>
 
-  <input type="file" id="imageInput" accept="image/*">
-  <img id="preview" alt="Vista previa de la foto">
+  <input type="file" id="imageInput" accept="image/*" />
+  <img id="preview" alt="Vista previa de la foto" />
   <button id="btnGenerar" disabled>Crear PDF</button>
 
-<script>
-  let imagenBase64 = null;
-  let imagenVerticalBase64 = null; // imagen ajustada vertical
+  <script>
+    let imagenBase64 = null;
+    let imagenVerticalBase64 = null;
 
-  const imageInput = document.getElementById("imageInput");
-  const preview = document.getElementById("preview");
-  const btnGenerar = document.getElementById("btnGenerar");
+    const imageInput = document.getElementById("imageInput");
+    const preview = document.getElementById("preview");
+    const btnGenerar = document.getElementById("btnGenerar");
 
-  imageInput.addEventListener("change", e => {
-    const file = e.target.files[0];
-    if (!file) return;
+    imageInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = async event => {
-      imagenBase64 = event.target.result;
-      // Ajustar la imagen para que quede vertical
-      imagenVerticalBase64 = await ajustarImagenVertical(imagenBase64);
-      preview.src = imagenVerticalBase64;
-      preview.style.display = "block";
-      btnGenerar.disabled = false;
-    };
-    reader.readAsDataURL(file);
-  });
-
-  btnGenerar.addEventListener("click", () => {
-    if (!imagenVerticalBase64) return alert("Selecciona una imagen primero.");
-
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ unit: "mm", format: "A4" });
-
-    const fotoAncho = 25; // mm
-    const fotoAlto = 30;  // mm
-    const margenX = 15;
-    const margenY = 15;
-    const espacioX = 5;
-    const espacioY = 5;
-
-    let x = margenX;
-    let y = margenY;
-
-    for (let i = 0; i < 10; i++) {
-      pdf.addImage(imagenVerticalBase64, 'JPEG', x, y, fotoAncho, fotoAlto);
-      x += fotoAncho + espacioX;
-      if ((i + 1) % 5 === 0) {
-        x = margenX;
-        y += fotoAlto + espacioY;
-      }
-    }
-
-    pdf.save("fotos_infantil.pdf");
-  });
-
-  // Función para rotar la imagen si está en horizontal
-  function ajustarImagenVertical(base64Img) {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let ctx = canvas.getContext('2d');
-
-        if (img.width > img.height) {
-          // Imagen horizontal -> rotar 90 grados para vertical
-          canvas.width = img.height;
-          canvas.height = img.width;
-          ctx.translate(canvas.width / 2, canvas.height / 2);
-          ctx.rotate(90 * Math.PI / 180);
-          ctx.drawImage(img, -img.width / 2, -img.height / 2);
-        } else {
-          // Ya es vertical, no rotar
-          canvas.width = img.width;
-          canvas.height = img.height;
-          ctx.drawImage(img, 0, 0);
-        }
-
-        resolve(canvas.toDataURL('image/jpeg'));
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        imagenBase64 = event.target.result;
+        imagenVerticalBase64 = await ajustarImagenVertical(imagenBase64);
+        preview.src = imagenVerticalBase64;
+        preview.style.display = "block";
+        btnGenerar.disabled = false;
       };
-      img.src = base64Img;
+      reader.readAsDataURL(file);
     });
-  }
-</script>
 
+    btnGenerar.addEventListener("click", () => {
+      if (!imagenVerticalBase64)
+        return alert("Selecciona una imagen primero.");
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: "mm", format: "A4" });
+
+      const fotoAncho = 25; // mm
+      const fotoAlto = 30;  // mm
+      const margenX = 15;
+      const margenY = 15;
+      const espacioX = 5;
+      const espacioY = 5;
+
+      let x = margenX;
+      let y = margenY;
+
+      for (let i = 0; i < 10; i++) {
+        // Dibujar borde
+        pdf.setDrawColor(0); // negro
+        pdf.setLineWidth(0.2); // grosor del borde
+        pdf.rect(x, y, fotoAncho, fotoAlto); // dibuja el borde
+
+        // Agregar imagen
+        pdf.addImage(imagenVerticalBase64, "JPEG", x, y, fotoAncho, fotoAlto);
+
+        x += fotoAncho + espacioX;
+        if ((i + 1) % 5 === 0) {
+          x = margenX;
+          y += fotoAlto + espacioY;
+        }
+      }
+
+      pdf.save("fotos_infantil.pdf");
+    });
+
+    function ajustarImagenVertical(base64Img) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+
+          if (img.width > img.height) {
+            // Rotar si está horizontal
+            canvas.width = img.height;
+            canvas.height = img.width;
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate(90 * Math.PI / 180);
+            ctx.drawImage(img, -img.width / 2, -img.height / 2);
+          } else {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+          }
+
+          resolve(canvas.toDataURL("image/jpeg"));
+        };
+        img.src = base64Img;
+      });
+    }
+  </script>
 </body>
 </html>
