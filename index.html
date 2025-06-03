@@ -93,41 +93,39 @@
       reader.readAsDataURL(file);
     });
 
-    btnGenerar.addEventListener("click", () => {
-      if (!imagenVerticalBase64)
-        return alert("Selecciona una imagen primero.");
+   btnGenerar.addEventListener("click", () => {
+  if (!imagenVerticalBase64)
+    return alert("Selecciona una imagen primero.");
 
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ unit: "mm", format: "A4" });
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: "mm", format: "A4" });
 
-      const fotoAncho = 25; // mm
-      const fotoAlto = 30;  // mm
-      const margenX = 15;
-      const margenY = 15;
-      const espacioX = 5;
-      const espacioY = 5;
+  const fotoAncho = 27; // mm -> para compensar escala de impresión
+  const fotoAlto = 33;  // mm
+  const margenX = 15;
+  const margenY = 15;
+  const espacioX = 5;
+  const espacioY = 5;
 
-      let x = margenX;
-      let y = margenY;
+  let x = margenX;
+  let y = margenY;
 
-      for (let i = 0; i < 10; i++) {
-        // Dibujar borde
-        pdf.setDrawColor(0); // negro
-        pdf.setLineWidth(0.2); // grosor del borde
-        pdf.rect(x, y, fotoAncho, fotoAlto); // dibuja el borde
+  for (let i = 0; i < 10; i++) {
+    pdf.setDrawColor(0);
+    pdf.setLineWidth(0.2);
+    pdf.rect(x, y, fotoAncho, fotoAlto);
+    pdf.addImage(imagenVerticalBase64, "JPEG", x, y, fotoAncho, fotoAlto);
 
-        // Agregar imagen
-        pdf.addImage(imagenVerticalBase64, "JPEG", x, y, fotoAncho, fotoAlto);
+    x += fotoAncho + espacioX;
+    if ((i + 1) % 3 === 0) { // ahora caben menos por fila
+      x = margenX;
+      y += fotoAlto + espacioY;
+    }
+  }
 
-        x += fotoAncho + espacioX;
-        if ((i + 1) % 5 === 0) {
-          x = margenX;
-          y += fotoAlto + espacioY;
-        }
-      }
+  pdf.save("fotos_infantil.pdf");
+});
 
-      pdf.save("fotos_infantil.pdf");
-    });
 
     function ajustarImagenVertical(base64Img) {
       return new Promise((resolve) => {
