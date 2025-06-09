@@ -6,21 +6,13 @@
   <title>PDF Fotos Infantil</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       font-family: sans-serif;
-      padding: 1rem;
       margin: 0;
+      padding: 1rem;
       display: flex;
       flex-direction: column;
       align-items: center;
-    }
-
-    h2 {
-      margin-bottom: 1rem;
       text-align: center;
     }
 
@@ -31,9 +23,9 @@
     #preview {
       max-width: 100%;
       max-height: 200px;
-      border-radius: 8px;
       display: none;
       margin-bottom: 1rem;
+      border-radius: 8px;
     }
 
     button {
@@ -50,28 +42,17 @@
     button:hover {
       background-color: #0056b3;
     }
-
-    @media (max-width: 600px) {
-      body {
-        padding: 1rem;
-      }
-
-      #preview {
-        max-height: 150px;
-      }
-    }
   </style>
 </head>
 <body>
-  <h2>Generar PDF con 10 fotos tamaño infantil LoreExpress</h2>
+  <h2>Generar PDF con 5 Fotos Tamaño Infantil</h2>
 
   <input type="file" id="imageInput" accept="image/*" />
-  <img id="preview" alt="Vista previa de la foto" />
+  <img id="preview" alt="Vista previa" />
   <button id="btnGenerar" disabled>Crear PDF</button>
 
   <script>
     let imagenBase64 = null;
-    let imagenVerticalBase64 = null;
 
     const imageInput = document.getElementById("imageInput");
     const preview = document.getElementById("preview");
@@ -83,9 +64,9 @@
 
       const reader = new FileReader();
       reader.onload = async (event) => {
-        imagenBase64 = event.target.result;
-        imagenVerticalBase64 = await ajustarImagenVertical(imagenBase64);
-        preview.src = imagenVerticalBase64;
+        const base64 = event.target.result;
+        imagenBase64 = await rotarSiEsHorizontal(base64);
+        preview.src = imagenBase64;
         preview.style.display = "block";
         btnGenerar.disabled = false;
       };
@@ -93,36 +74,29 @@
     });
 
     btnGenerar.addEventListener("click", () => {
-      if (!imagenVerticalBase64) return alert("Selecciona una imagen primero.");
+      if (!imagenBase64) return alert("Selecciona una imagen primero.");
 
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ unit: "mm", format: "A4" });
 
-      const fotoAncho = 27; // mm
-      const fotoAlto = 33;  // mm
-
-      const margenX = 10; // 1 cm lateral
-      const margenY = 5;  // 0.5 cm superior/inferior
-
-      const espacioX = 5; // espacio entre columnas
-      const espacioY = 5; // espacio entre filas
+      const fotoAncho = 27;
+      const fotoAlto = 33;
+      const margenX = 10;
+      const margenY = 5;
+      const espacioX = 5;
 
       let x = margenX;
-      let y = margenY;
+      const y = margenY;
 
-      for (let fila = 0; fila < 2; fila++) {
-        x = margenX;
-        for (let col = 0; col < 5; col++) {
-          pdf.addImage(imagenVerticalBase64, "JPEG", x, y, fotoAncho, fotoAlto);
-          x += fotoAncho + espacioX;
-        }
-        y += fotoAlto + espacioY;
+      for (let i = 0; i < 5; i++) {
+        pdf.addImage(imagenBase64, "JPEG", x, y, fotoAncho, fotoAlto);
+        x += fotoAncho + espacioX;
       }
 
       pdf.save("fotos_infantil.pdf");
     });
 
-    function ajustarImagenVertical(base64Img) {
+    function rotarSiEsHorizontal(base64Img) {
       return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => {
@@ -149,4 +123,5 @@
   </script>
 </body>
 </html>
+
 
